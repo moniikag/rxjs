@@ -1,0 +1,12 @@
+#parrent {
+  width: 200px;
+  height: 200px;
+  background: red;
+}
+
+#child {
+  width: 150px;
+  background: blue;
+  color: white;
+  position: absolute;
+}
