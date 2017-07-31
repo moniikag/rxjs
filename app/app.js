@@ -1,28 +1,23 @@
-import Rx from 'rx'
+import Rx from 'rxjs'
 
-Array.prototype.concatAll = function() {
-  let newArr = []
-  this.forEach((subArr) => {
-    subArr.forEach((el) => {
-      newArr.push(el)
-    })
-  })
-  return newArr
-}
+const button = document.querySelector('.button')
+const label = document.querySelector('h4')
 
-const parrent = document.getElementById("parrent")
-const child = document.getElementById("child")
 
-let grabs = Rx.Observable.fromEvent(child, "mousedown")
-let moves = Rx.Observable.fromEvent(parrent, "mousemove")
-let drops = Rx.Observable.fromEvent(parrent, "mouseup")
+let clickStream = Rx.Observable.fromEvent(button, 'click')
 
-let drags = grabs.map((e) => {
-  return moves.takeUntil(drops)
-}).concatAll()
+let doubleClickStream = clickStream
+  .bufferWhen(() => clickStream.debounceTime(250))
+  .map(arr => arr.length)
+  .filter(len => len === 2)
 
-drags.forEach((e) => {
-  child.style.left = e.clientX + "px"
-  child.style.top = e.clientY + "px"
+doubleClickStream.subscribe(event => {
+  label.textContent = 'double click'
 })
+
+doubleClickStream
+  .delay(1000)
+  .subscribe(suggestion => {
+    label.textContent ='-'
+  })
 
