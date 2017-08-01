@@ -1,23 +1,14 @@
 import Rx from 'rxjs'
 
-const button = document.querySelector('.button')
-const label = document.querySelector('h4')
+let requestStream = Rx.Observable.of('https://api.github.com/users')
 
+let responseStream = requestStream
+  .flatMap(requestUrl =>
+    Rx.Observable.fromPromise(
+      fetch(requestUrl).then(response => response.json())
+    )
+  )
 
-let clickStream = Rx.Observable.fromEvent(button, 'click')
-
-let doubleClickStream = clickStream
-  .bufferWhen(() => clickStream.debounceTime(250))
-  .map(arr => arr.length)
-  .filter(len => len === 2)
-
-doubleClickStream.subscribe(event => {
-  label.textContent = 'double click'
+responseStream.subscribe(response => {
+  console.log(response)
 })
-
-doubleClickStream
-  .delay(1000)
-  .subscribe(suggestion => {
-    label.textContent ='-'
-  })
-
