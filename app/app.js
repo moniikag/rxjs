@@ -1,8 +1,17 @@
 import Rx from 'rxjs'
 
-let requestStream = Rx.Observable.of('https://api.github.com/users')
+let refreshButton = document.querySelector('.refresh')
+let refreshClickStream = Rx.Observable.fromEvent(refreshButton, 'click')
 
-let responseStream = requestStream
+let startupRequestStream = Rx.Observable.of('https://api.github.com/users')
+
+let requestOnRefreshStream = refreshClickStream
+  .map(ev => {
+    let randomOffset = Math.floor(Math.random()*500)
+    return 'https://api.github.com/users?since=' + randomOffset
+  })
+
+let responseStream = requestOnRefreshStream.merge(startupRequestStream)
   .flatMap(requestUrl =>
     Rx.Observable.fromPromise(
       fetch(requestUrl).then(response => response.json())
