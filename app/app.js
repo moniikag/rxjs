@@ -22,6 +22,8 @@ function createSuggestionStream(responseStream) {
   return responseStream.map(listUser =>
     listUser[Math.floor(Math.random()*listUser.length)]
   )
+  .startWith(null)
+  .merge(refreshClickStream.map(ev => null))
 }
 
 let suggestion1Stream = createSuggestionStream(responseStream)
@@ -30,11 +32,16 @@ let suggestion3Stream = createSuggestionStream(responseStream)
 
 function renderSuggestion(userData, selector) {
   const element = document.querySelector(selector)
-  let usernameEl = element.querySelector('.username')
-  usernameEl.href = userData.html_url
-  usernameEl.textContent = userData.login
-  let imgEl = element.querySelector('img')
-  imgEl.src = userData.avatar_url
+  if(userData === null) {
+    element.style.visibility = 'hidden'
+  } else {
+    element.style.visibility = 'visible'
+    let usernameEl = element.querySelector('.username')
+    usernameEl.href = userData.html_url
+    usernameEl.textContent = userData.login
+    let imgEl = element.querySelector('img')
+    imgEl.src = userData.avatar_url
+  }
 }
 
 suggestion1Stream.subscribe(user => {
