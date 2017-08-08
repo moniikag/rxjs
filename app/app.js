@@ -12,11 +12,13 @@ let requestOnRefreshStream = refreshClickStream
   })
 
 let responseStream = requestOnRefreshStream.merge(startupRequestStream)
-  .flatMap(requestUrl =>
-    Rx.Observable.fromPromise(
+  .flatMap(requestUrl => {
+    console.log('request')
+    return Rx.Observable.fromPromise(
       fetch(requestUrl).then(response => response.json())
     )
-  )
+  })
+  .shareReplay()
 
 function createSuggestionStream(responseStream) {
   return responseStream.map(listUser =>
