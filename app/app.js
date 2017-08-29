@@ -1,15 +1,13 @@
 import Rx from 'rxjs'
 
-const click = Rx.Observable.fromEvent(document, 'click')
+const subject = new Rx.Subject()
 
-const sixClicks = click.take(6)
+document.addEventListener('click', (ev) => subject.next(1))
 
-/*
-  click             ----c--c--c----c-c-c--c---c-c-c-c---
-  sixClicks         ----c--c--c----c-c-c|
-*/
+fetch('https://jsonplaceholder.typicode.com/users/0')
+  .then(res => res.json())
+  .then(data => subject.next(1))
 
-sixClicks.subscribe((ev) => {
-  console.log(ev.clientX)
-})
+const count = subject.scan((acc, x) => acc + x, 0)
 
+count.subscribe(x => console.log(x))
