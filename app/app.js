@@ -1,20 +1,23 @@
 import Rx from 'rxjs'
 
-const subject = new Rx.Subject()
+// const x$ = new Rx.Subject()
 
-// 1. Identify
-// 2. Convert to Observables
-// 3. Compose
+// const click$ = Rx.Observable
+//   .fromEvent(document, 'click')
 
-const click$ = Rx.Observable.fromEvent(document, 'click')
+// click$.subscribe({
+//   next: (ev) => x$.next(ev.clientX)
+// })
 
-const res$ = Rx.Observable.from(
-  fetch('https://jsonplaceholder.typicode.com/users/0')
-  .then(res => res.json())
-)
+// x$.subscribe({
+//   next: function next(x) { console.log(x) }
+// })
 
-const count = Rx.Observable.merge(click$, res$)
-  .map(() => 1)
-  .scan((acc, x) => acc + x, 0)
+const click$ = Rx.Observable
+  .fromEvent(document, 'click')
 
-count.subscribe(x => console.log(x))
+const x$ = click$.map(ev => ev.clientX)
+
+x$.subscribe({
+  next: function next(x) { console.log(x) }
+})
