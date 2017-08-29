@@ -2,12 +2,19 @@ import Rx from 'rxjs'
 
 const subject = new Rx.Subject()
 
-document.addEventListener('click', (ev) => subject.next(1))
+// 1. Identify
+// 2. Convert to Observables
+// 3. Compose
 
-fetch('https://jsonplaceholder.typicode.com/users/0')
+const click$ = Rx.Observable.fromEvent(document, 'click')
+
+const res$ = Rx.Observable.from(
+  fetch('https://jsonplaceholder.typicode.com/users/0')
   .then(res => res.json())
-  .then(data => subject.next(1))
+)
 
-const count = subject.scan((acc, x) => acc + x, 0)
+const count = Rx.Observable.merge(click$, res$)
+  .map(() => 1)
+  .scan((acc, x) => acc + x, 0)
 
 count.subscribe(x => console.log(x))
