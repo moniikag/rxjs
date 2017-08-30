@@ -1,23 +1,63 @@
 import Rx from 'rxjs'
 
-// const x$ = new Rx.Subject()
+// const userData$ = Rx.Observable.ajax({
+//   url: 'https://jsonplaceholder.typicode.com/users/1',
+//   method: 'GET',
+// })
 
-// const click$ = Rx.Observable
-//   .fromEvent(document, 'click')
+// const click$ = Rx.Observable.fromEvent(document, 'click')
 
 // click$.subscribe({
-//   next: (ev) => x$.next(ev.clientX)
+//   next: (ev) => {
+//     userData$.subscribe({
+//       next: (data) => console.log(data.response)
+//     })
+//   }
 // })
 
-// x$.subscribe({
-//   next: function next(x) { console.log(x) }
+// 1st click
+// 2nd response
+
+// ---------------------
+
+// const userData$ = Rx.Observable.ajax({
+//   url: 'https://jsonplaceholder.typicode.com/users/1',
+//   method: 'GET',
 // })
 
-const click$ = Rx.Observable
-  .fromEvent(document, 'click')
+// const click$ = Rx.Observable.fromEvent(document, 'click')
 
-const x$ = click$.map(ev => ev.clientX)
+// const responseWhenClick$$ = click$
+//   .map(ev => userData$)
 
-x$.subscribe({
-  next: function next(x) { console.log(x) }
+// responseWhenClick$$.subscribe({
+//   next: (res$) => {
+//     res$.subscribe({
+//       next: (data) => console.log(data.response)
+//     })
+//   }
+// })
+
+
+/*
+----c-------------------c------
+    \                   \
+    ------r----          -----r----
+                mergeAll
+----------r-------------------r----
+*/
+
+const userData$ = Rx.Observable.ajax({
+  url: 'https://jsonplaceholder.typicode.com/users/1',
+  method: 'GET',
+})
+
+const click$ = Rx.Observable.fromEvent(document, 'click')
+
+const responseWhenClick$ = click$ // click$.mergeMap(ev => userData$)
+  .map(ev => userData$)
+  .mergeAll()
+
+responseWhenClick$.subscribe({
+  next: (data) => console.log(data.response)
 })
