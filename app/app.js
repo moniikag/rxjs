@@ -1,16 +1,33 @@
 import Rx from 'rxjs'
 
-const length$ = Rx.Observable.of(5)
-const width$ = Rx.Observable.of(7)
-const height$ = Rx.Observable.of(2.8, 2.5)
+const dotElement = document.getElementById('dot')
 
-const volume$ = Rx.Observable
-  // .zip(length$, width$, height$,
-  .combineLatest(length$, width$, height$,
-    (length, width, height) => length * width * height
-  )
-// .zip works in a synchronised manner.
-// It waits for the second value for each element. If we receive
-// a second value e.g. for only one observable, then it won't update
+const updateDot = (x, y) => {
+  dotElement.style.left = `${x}px`
+  dotElement.style.top = `${y}px`
+}
 
-volume$.subscribe(volume => console.log(volume))
+// Rx.Observable.fromEvent(document, 'click')
+//   // .do returns the same as it received,
+//   // but it allows to add side effects.
+//   // so it's like a map that does sth before returning unmodified ev
+//   .do(ev => updateDot(ev.clientX, ev.clientY))
+//   .switchMap(ev => Rx.Observable.ajax({
+//     url: 'https://jsonplaceholder.typicode.com/users/1',
+//     method: 'GET',
+//   }))
+//   .subscribe(data => console.log(data.response))
+
+const click$ = Rx.Observable.fromEvent(document, 'click')
+
+click$.subscribe(ev => updateDot(ev.clientX, ev.clientY))
+
+const res$ = click$
+  .switchMap(ev => Rx.Observable.ajax({
+    url: 'https://jsonplaceholder.typicode.com/users/1',
+    method: 'GET',
+  }))
+
+res$.subscribe(data => console.log(data.response))
+
+// use 'do' for debugging
