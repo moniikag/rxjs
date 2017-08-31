@@ -1,28 +1,16 @@
 import Rx from 'rxjs'
 
-// This gives us three executions of clock$ (for radnomNum, smallNum & for largeNum)
-// const clock$ = Rx.Observable.interval(500).take(6)
+const length$ = Rx.Observable.of(5)
+const width$ = Rx.Observable.of(7)
+const height$ = Rx.Observable.of(2.8, 2.5)
 
-// const randomNum$ = clock$
-//   .map(i => Math.random() * 100)
+const volume$ = Rx.Observable
+  // .zip(length$, width$, height$,
+  .combineLatest(length$, width$, height$,
+    (length, width, height) => length * width * height
+  )
+// .zip works in a synchronised manner.
+// It waits for the second value for each element. If we receive
+// a second value e.g. for only one observable, then it won't update
 
-const clock$ = Rx.Observable.interval(500).share().take(6)
-
-const randomNum$ = clock$
-  .map(i => Math.random() * 100).share()
-
-const smallNum$ = randomNum$
-  .filter(x => x <= 50)
-  .toArray()
-
-const largeNum$ = randomNum$
-  .filter(x => x > 50)
-  .toArray()
-
-randomNum$.subscribe(x => console.log('random: ' + x))
-smallNum$.subscribe(x=> console.log('small: ' + x))
-largeNum$.subscribe(x=> console.log('large: ' + x))
-
-// Use share() only where necessary. Here: for execution of clock & for mapping
-// it to random.
-// subscribe = invoke execution of a collection
+volume$.subscribe(volume => console.log(volume))
