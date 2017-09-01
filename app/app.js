@@ -1,9 +1,28 @@
 import Rx from 'rxjs'
 
-const click$ = Rx.Observable.fromEvent(document, 'click')
+// const res$ = Rx.Observable.interval(2000)
+//   .switchMap(ev => Rx.Observable.ajax({
+//     url: 'https://jsonplaceholder.typicode.com/users/1',
+//     method: 'GET',
+//   }))
 
-const tickWhenClick$ = click$
-  // .flatMap(ev => Rx.Observable.interval(500)) // DEALS WITH ALL THE PREVIOUS STREAMS SIMULTANOUSLY
-  .switchMap(ev => Rx.Observable.interval(500))  // UNSUBSCRIBES PREVIOUS ONE
+// res$.subscribe(data => console.log(data))
 
-tickWhenClick$.subscribe(x => console.log(x))
+const resume$ = new Rx.Subject()
+
+const res$ = resume$
+  .switchMap(resume => resume ?
+                          Rx.Observable.interval(2000) : // after pause, the new one will always start from 0
+                          Rx.Observable.empty() // empty stream, nothing to map through
+            )
+  .do(x => console.log('request it! ' + x))
+  .switchMap(ev => Rx.Observable.ajax({
+    url: 'https://jsonplaceholder.typicode.com/users/1',
+    method: 'GET',
+  }))
+
+res$.subscribe(data => console.log(data))
+
+resume$.next(false)
+setTimeout(() => resume$.next(true), 500)
+setTimeout(() => resume$.next(false), 5000)
