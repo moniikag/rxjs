@@ -1,20 +1,28 @@
 import Rx from 'rxjs'
 
-// Each operates on all elements of Observable
+// This gives us three executions of clock$ (for radnomNum, smallNum & for largeNum)
+// const clock$ = Rx.Observable.interval(500).take(6)
 
-// const clock$ = Rx.Observable.interval(1000).take(6)
+// const randomNum$ = clock$
+//   .map(i => Math.random() * 100)
 
-// clock$.subscribe(x => console.log('A: ' + x))
+const clock$ = Rx.Observable.interval(500).share().take(6)
 
-// setTimeout(() => { clock$.subscribe(x => console.log('  B: ' + x))
-// }, 2500)
+const randomNum$ = clock$
+  .map(i => Math.random() * 100).share()
 
-// Observable is shared by subscribers.
-// It does not invoke new execution of Observable, uses the shared one.
+const smallNum$ = randomNum$
+  .filter(x => x <= 50)
+  .toArray()
 
-const clock$ = Rx.Observable.interval(1000).take(6).share()
+const largeNum$ = randomNum$
+  .filter(x => x > 50)
+  .toArray()
 
-clock$.subscribe(x => console.log('A: ' + x))
+randomNum$.subscribe(x => console.log('random: ' + x))
+smallNum$.subscribe(x=> console.log('small: ' + x))
+largeNum$.subscribe(x=> console.log('large: ' + x))
 
-setTimeout(() => { clock$.subscribe(x => console.log('  B: ' + x))
-}, 2500)
+// Use share() only where necessary. Here: for execution of clock & for mapping
+// it to random.
+// subscribe = invoke execution of a collection
