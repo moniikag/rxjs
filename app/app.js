@@ -1,7 +1,5 @@
 import Rx from 'rxjs'
 
-var observable = Rx.Observable.interval(1000).take(5);
-
 var subject = new Rx.Subject();
 
 var observerA = {
@@ -9,8 +7,6 @@ var observerA = {
   error: function (err) { console.log('A error ' + err); },
   complete: function () { console.log('A done'); },
 };
-
-observable.subscribe(subject);
 
 subject.subscribe(observerA);
 
@@ -23,3 +19,10 @@ var observerB = {
 setTimeout(function () {
   subject.subscribe(observerB);
 }, 2000);
+
+subject.next(1);
+subject.next(2);
+subject.next(3);
+
+// We shouldn't do it too often. In reactive programming we should react to
+// things, not manually control them.
