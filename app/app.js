@@ -1,33 +1,21 @@
 import Rx from 'rxjs'
 
-const dotElement = document.getElementById('dot')
+var observable = Rx.Observable.interval(1000).take(5);
 
-const updateDot = (x, y) => {
-  dotElement.style.left = `${x}px`
-  dotElement.style.top = `${y}px`
-}
+var observerA = {
+  next: function (x) { console.log('A next ' + x); },
+  error: function (err) { console.log('A error ' + err); },
+  complete: function () { console.log('A done'); },
+};
 
-// Rx.Observable.fromEvent(document, 'click')
-//   // .do returns the same as it received,
-//   // but it allows to add side effects.
-//   // so it's like a map that does sth before returning unmodified ev
-//   .do(ev => updateDot(ev.clientX, ev.clientY))
-//   .switchMap(ev => Rx.Observable.ajax({
-//     url: 'https://jsonplaceholder.typicode.com/users/1',
-//     method: 'GET',
-//   }))
-//   .subscribe(data => console.log(data.response))
+observable.subscribe(observerA); // each observer creates an execution
 
-const click$ = Rx.Observable.fromEvent(document, 'click')
+var observerB = {
+  next: function (x) { console.log('B next ' + x); },
+  error: function (err) { console.log('B error ' + err); },
+  complete: function () { console.log('B done'); },
+};
 
-click$.subscribe(ev => updateDot(ev.clientX, ev.clientY))
-
-const res$ = click$
-  .switchMap(ev => Rx.Observable.ajax({
-    url: 'https://jsonplaceholder.typicode.com/users/1',
-    method: 'GET',
-  }))
-
-res$.subscribe(data => console.log(data.response))
-
-// use 'do' for debugging
+setTimeout(function () {
+  observable.subscribe(observerB);
+}, 2000);
