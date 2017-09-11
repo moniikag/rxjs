@@ -1,51 +1,56 @@
 import Rx from 'rxjs'
 
-// var subject = new Rx.Subject();
+// const bufferSize = 2
+const bufferSize = Number.POSITIVE_INFINITY // => all that happened in the past
 
+const windowSize = 250
 /*
-----1---2---3---------------
- A..1...2...3...
-                      B.....
-B, that subscribed after 2 seconds, only sees values in the future.
+windowSize - determins how long in time will the ReplaySubject keep events
+stored in its internal buffer
 */
 
-
-var subject = new Rx.BehaviorSubject(0);
-
-// Age vs Birthdays
+const subject = new Rx.ReplaySubject(bufferSize, windowSize);
+// Replays everything once a new subscriber arrives.
+// Even if first observer has already completed.
 
 /*
-0---1---2---3---------------
- 0..1...2...3...
-                      3.....
-BehaviorSubject always has a current value (that's also why we need to
-initialize it with a starting value).
+BehaviorSubject !== ReplaySubject(1)
+- ReplaySubject does not have an initial value nor current value,
+it just replays events from the past.
+ReplaySubject can replay even when first observer has completed.
+For BehaviorSubject, after first observer has completed - there is no value.
+
+=> to represent value over time: BehaviorSubject
+=> to replay events: ReplaySubject
 */
 
-var observerA = {
+const observerA = {
   next: function (x) { console.log('A next ' + x); },
   error: function (err) { console.log('A error ' + err); },
   complete: function () { console.log('A done'); },
 };
 
-subject.subscribe(observerA)
-console.log('observerA subscribed')
+subject.subscribe(observerA);
+console.log('observerA subscribed');
 
-var observerB = {
+const observerB = {
   next: function (x) { console.log('B next ' + x); },
   error: function (err) { console.log('B error ' + err); },
   complete: function () { console.log('B done'); },
 };
 
-setTimeout(function () {
-  subject.subscribe(observerB);
-}, 2000);
+setTimeout(() => subject.next(1), 100);
+setTimeout(() => subject.next(2), 200);
+setTimeout(() => subject.next(3), 300);
+setTimeout(() => subject.complete(), 350);
 
-subject.next(1);
-subject.next(2);
-subject.next(3);
+/*
+----1---2---3--|
+  ..1...2...3...
+                 1,2,3|
+*/
 
 setTimeout(function () {
   subject.subscribe(observerB);
   console.log('observerB subscribed');
-}, 2000);
+}, 400);
