@@ -1,11 +1,11 @@
 import Rx from 'rxjs'
 
-var subject = new Rx.AsyncSubject();
+var connectableObservable = Rx.Observable.interval(1000)
+  .take(5)
+  .multicast(new Rx.ReplaySubject(100));
 
-// Subject
-// ReplaySubject: replays many, before or after completion
-// BehaviorSubject: replays one, only before completion
-// AsyncSubject: replays one, only if completed
+// multicast returns connectable observable.
+// let's us avoid creating Subject the observes Observable in order to add more Observers
 
 var observerA = {
   next: function (x) { console.log('A next ' + x); },
@@ -13,8 +13,13 @@ var observerA = {
   complete: function () { console.log('A done'); },
 };
 
-subject.subscribe(observerA);
-console.log('observerA subscribed');
+connectableObservable.connect();
+// connect does subscription of original observable and the internal subject passed in mutlicast
+// === observable.subscribe(subject)
+// we use connect() to say when to start running the execution
+
+// now we can normally subscribe to the observer
+connectableObservable.subscribe(observerA);
 
 var observerB = {
   next: function (x) { console.log('B next ' + x); },
@@ -22,20 +27,6 @@ var observerB = {
   complete: function () { console.log('B done'); },
 };
 
-setTimeout(() => subject.next(1), 100);
-setTimeout(() => subject.next(2), 200);
-setTimeout(() => subject.next(3), 300);
-setTimeout(() => subject.complete(), 350);
-
-/*
-----1---2---3--|
-  .............3|
-                   3|
-
-=> all subscribers only get the last value
-*/
-
 setTimeout(function () {
-  subject.subscribe(observerB);
-  console.log('observerB subscribed');
-}, 400);
+  connectableObservable.subscribe(observerB);
+}, 2000);
