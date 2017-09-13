@@ -2,17 +2,13 @@ import Rx from 'rxjs'
 
 var shared = Rx.Observable.interval(1000)
   .do(x => console.log('source ' + x))
-  .multicast(new Rx.Subject())
-  .refCount();
+  .share();
 
-/*
-
-refCount means 'autoconnect'
-It looks for number of subscribers and for chagnes:
-0 => 1 - it connects (subscribes)
-1 => 0 - it unsubscribes
-
-*/
+// share = publish().refCount()
+// publish = multicast + Subject
+// publishReplay = multicast + ReplaySubject
+// publishBehavior = multicast + BehaviorSubject
+// publishLast = multicast + AsyncSubject
 
 var observerA = {
   next: function (x) { console.log('A next ' + x); },
@@ -20,7 +16,7 @@ var observerA = {
   complete: function () { console.log('A done'); },
 };
 
-var subA = shared.subscribe(observerA); // start
+var subA = shared.subscribe(observerA);
 
 var observerB = {
   next: function (x) { console.log('B next ' + x); },
@@ -30,15 +26,15 @@ var observerB = {
 
 var subB;
 setTimeout(function () {
-  subB = shared.subscribe(observerB); // 1 => 2
+  subB = shared.subscribe(observerB);
 }, 2000);
 
 setTimeout(function () {
-  subA.unsubscribe(); // 2 => 1
+  subA.unsubscribe();
   console.log('unsubscribed A');
 }, 5000);
 
 setTimeout(function () {
-  subB.unsubscribe(); // 1 => 0 (stop)
+  subB.unsubscribe();
   console.log('unsubscribed B');
 }, 7000);
