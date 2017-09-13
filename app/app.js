@@ -1,8 +1,18 @@
 import Rx from 'rxjs'
 
-var connectableObservable = Rx.Observable.interval(1000)
+var shared = Rx.Observable.interval(1000)
   .do(x => console.log('source ' + x))
-  .multicast(new Rx.Subject());
+  .multicast(new Rx.Subject())
+  .refCount();
+
+/*
+
+refCount means 'autoconnect'
+It looks for number of subscribers and for chagnes:
+0 => 1 - it connects (subscribes)
+1 => 0 - it unsubscribes
+
+*/
 
 var observerA = {
   next: function (x) { console.log('A next ' + x); },
@@ -10,17 +20,7 @@ var observerA = {
   complete: function () { console.log('A done'); },
 };
 
-var sub = connectableObservable.connect(); // start
-
-/*
-connect() starts and continues forever
-but: it returns subscription - so we can assign it to a variable
-and then perform unsubscribe
-
-=> with connect() we manually manage start & stop of execution
-*/
-
-var subA = connectableObservable.subscribe(observerA);
+var subA = shared.subscribe(observerA); // start
 
 var observerB = {
   next: function (x) { console.log('B next ' + x); },
@@ -30,10 +30,15 @@ var observerB = {
 
 var subB;
 setTimeout(function () {
-  subB = connectableObservable.subscribe(observerB);
+  subB = shared.subscribe(observerB); // 1 => 2
 }, 2000);
 
 setTimeout(function () {
-  sub.unsubscribe(); // stop
-  console.log('unsubscribed shared execution');
+  subA.unsubscribe(); // 2 => 1
+  console.log('unsubscribed A');
 }, 5000);
+
+setTimeout(function () {
+  subB.unsubscribe(); // 1 => 0 (stop)
+  console.log('unsubscribed B');
+}, 7000);
