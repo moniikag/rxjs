@@ -1,11 +1,8 @@
 import Rx from 'rxjs'
 
 var connectableObservable = Rx.Observable.interval(1000)
-  .take(5)
-  .multicast(new Rx.ReplaySubject(100));
-
-// multicast returns connectable observable.
-// let's us avoid creating Subject the observes Observable in order to add more Observers
+  .do(x => console.log('source ' + x))
+  .multicast(new Rx.Subject());
 
 var observerA = {
   next: function (x) { console.log('A next ' + x); },
@@ -13,13 +10,17 @@ var observerA = {
   complete: function () { console.log('A done'); },
 };
 
-connectableObservable.connect();
-// connect does subscription of original observable and the internal subject passed in mutlicast
-// === observable.subscribe(subject)
-// we use connect() to say when to start running the execution
+var sub = connectableObservable.connect(); // start
 
-// now we can normally subscribe to the observer
-connectableObservable.subscribe(observerA);
+/*
+connect() starts and continues forever
+but: it returns subscription - so we can assign it to a variable
+and then perform unsubscribe
+
+=> with connect() we manually manage start & stop of execution
+*/
+
+var subA = connectableObservable.subscribe(observerA);
 
 var observerB = {
   next: function (x) { console.log('B next ' + x); },
@@ -27,6 +28,12 @@ var observerB = {
   complete: function () { console.log('B done'); },
 };
 
+var subB;
 setTimeout(function () {
-  connectableObservable.subscribe(observerB);
+  subB = connectableObservable.subscribe(observerB);
 }, 2000);
+
+setTimeout(function () {
+  sub.unsubscribe(); // stop
+  console.log('unsubscribed shared execution');
+}, 5000);
