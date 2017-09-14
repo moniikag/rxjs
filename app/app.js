@@ -1,14 +1,26 @@
 import Rx from 'rxjs'
 
-var shared = Rx.Observable.interval(1000)
-  .do(x => console.log('source ' + x))
-  .share();
+// const subject = new Rx.Subject()
+function subjectFactory() {
+  return new Rx.Subject();
+}
 
-// share = publish().refCount()
-// publish = multicast + Subject
-// publishReplay = multicast + ReplaySubject
-// publishBehavior = multicast + BehaviorSubject
-// publishLast = multicast + AsyncSubject
+var shared = Rx.Observable.interval(1000).take(6)
+  .do(x => console.log('source ' + x))
+  // .multicast(subject)
+  .multicast(subjectFactory)
+  .refCount();
+
+/*
+If we passed new Rx.Subject(), nothing would be executed after new subscription,
+because the subject has already completed.
+But we can pass subjectFactory, which will emit new sujbect everytime
+there is a subscription
+*/
+
+// subject: --0--1--2--3--4--5|
+//                               A
+// subject2:                     --0--1--2--3--4--5|
 
 var observerA = {
   next: function (x) { console.log('A next ' + x); },
@@ -16,7 +28,8 @@ var observerA = {
   complete: function () { console.log('A done'); },
 };
 
-var subA = shared.subscribe(observerA);
+var subA = shared.subscribe(observerA); // 0 => 1
+console.log('subscribed A');
 
 var observerB = {
   next: function (x) { console.log('B next ' + x); },
@@ -27,6 +40,7 @@ var observerB = {
 var subB;
 setTimeout(function () {
   subB = shared.subscribe(observerB);
+  console.log('subscribed B');
 }, 2000);
 
 setTimeout(function () {
@@ -38,3 +52,8 @@ setTimeout(function () {
   subB.unsubscribe();
   console.log('unsubscribed B');
 }, 7000);
+
+setTimeout(function () {
+  subA = shared.subscribe(observerA); // 0 => 1 (connect)
+  console.log('subscribed A');
+}, 8000);
