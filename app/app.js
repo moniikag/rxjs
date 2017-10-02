@@ -1,59 +1,38 @@
 import Rx from 'rxjs'
 
-// const subject = new Rx.Subject()
 function subjectFactory() {
   return new Rx.Subject();
 }
 
-var shared = Rx.Observable.interval(1000).take(6)
-  .do(x => console.log('source ' + x))
-  // .multicast(subject)
-  .multicast(subjectFactory)
-  .refCount();
-
 /*
-If we passed new Rx.Subject(), nothing would be executed after new subscription,
-because the subject has already completed.
-But we can pass subjectFactory, which will emit new sujbect everytime
-there is a subscription
+var result = Rx.Observable.interval(1000).take(6)
+  .do(x => console.log('Source ' + x))
+  .map(x => Math.random())
+
+var resultDelayed = result.delay(500)
+var merged = result.merge(resultDelayed)
+merged.subscribe(x => console.log(x))
+
+This code will cause two executions. We'll have:
+Source 0; random, Source 0, random, Source 1, random, Source 1, random...
+
 */
 
-// subject: --0--1--2--3--4--5|
-//                               A
-// subject2:                     --0--1--2--3--4--5|
+// If we pass second argument to multicast, it will not return connectable
+// observable anymore - it will just return a normal observable, it doesn't
+// have refCount anymore. There won't be a shared observable, it will just be a
+// result observable.
+var result = Rx.Observable.interval(1000).take(6)
+  .do(x => console.log('source ' + x))
+  .map(x => Math.random())
+  .multicast(subjectFactory, function selector(shared) {
+    // the body of our selector function is our sandbox, this is the only place
+    // where observable is shared - we should move execution here
+    var sharedDelayed = shared.delay(500);
+    var merged = shared.merge(sharedDelayed);
+    return merged;
+  });
 
-var observerA = {
-  next: function (x) { console.log('A next ' + x); },
-  error: function (err) { console.log('A error ' + err); },
-  complete: function () { console.log('A done'); },
-};
+var sub = result.subscribe(x => console.log(x));
 
-var subA = shared.subscribe(observerA); // 0 => 1
-console.log('subscribed A');
 
-var observerB = {
-  next: function (x) { console.log('B next ' + x); },
-  error: function (err) { console.log('B error ' + err); },
-  complete: function () { console.log('B done'); },
-};
-
-var subB;
-setTimeout(function () {
-  subB = shared.subscribe(observerB);
-  console.log('subscribed B');
-}, 2000);
-
-setTimeout(function () {
-  subA.unsubscribe();
-  console.log('unsubscribed A');
-}, 5000);
-
-setTimeout(function () {
-  subB.unsubscribe();
-  console.log('unsubscribed B');
-}, 7000);
-
-setTimeout(function () {
-  subA = shared.subscribe(observerA); // 0 => 1 (connect)
-  console.log('subscribed A');
-}, 8000);
