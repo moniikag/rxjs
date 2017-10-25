@@ -9,8 +9,12 @@ const interval$ = Observable.interval(1000)
 const stop$ = Observable.fromEvent(stopButton, 'click')
 const intervalThatStops$ = interval$.takeUntil(stop$)
 
-// intervalThatStops$.subscribe(x => console.log(x))
+// .scan works like JavaScript reduce
+// takes function & initializer
 
 start$
   .switchMapTo(intervalThatStops$)
+  .scan((acc) => {
+    return { count: acc.count + 1 }
+  }, { count: 0 })
   .subscribe(x => console.log(x))
