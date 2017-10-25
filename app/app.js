@@ -1,38 +1,21 @@
 import Rx from 'rxjs'
+import { Observable } from 'rxjs/Rx'
 
-function subjectFactory() {
-  return new Rx.Subject();
-}
+const startButton = document.querySelector('#start')
 
-/*
-var result = Rx.Observable.interval(1000).take(6)
-  .do(x => console.log('Source ' + x))
-  .map(x => Math.random())
+// switchMap here switches us over to another Observable
+// you can still access click event, e.g.:
+// .switchMap((event) => Obeservable.interval(event.x))
 
-var resultDelayed = result.delay(500)
-var merged = result.merge(resultDelayed)
-merged.subscribe(x => console.log(x))
+// Observable.fromEvent(startButton, 'click')
+//   .switchMap(() => Observable.interval(1000))
+//   .subscribe((x) => console.log(x))
 
-This code will cause two executions. We'll have:
-Source 0; random, Source 0, random, Source 1, random, Source 1, random...
+const start$ = Observable.fromEvent(startButton, 'click')
+const interval$ = Observable.interval(1000)
+// You can use switchMapTo instead of switchMap with arrow function
+// const startInterval$ = start$.switchMap(() => interval$)
+const startInterval$ = start$.switchMapTo(interval$)
 
-*/
-
-// If we pass second argument to multicast, it will not return connectable
-// observable anymore - it will just return a normal observable, it doesn't
-// have refCount anymore. There won't be a shared observable, it will just be a
-// result observable.
-var result = Rx.Observable.interval(1000).take(6)
-  .do(x => console.log('source ' + x))
-  .map(x => Math.random())
-  .multicast(subjectFactory, function selector(shared) {
-    // the body of our selector function is our sandbox, this is the only place
-    // where observable is shared - we should move execution here
-    var sharedDelayed = shared.delay(500);
-    var merged = shared.merge(sharedDelayed);
-    return merged;
-  });
-
-var sub = result.subscribe(x => console.log(x));
-
-
+startInterval$
+  .subscribe((x) => console.log(x))
