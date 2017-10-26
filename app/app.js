@@ -9,19 +9,18 @@ const interval$ = Observable.interval(1000)
 const stop$ = Observable.fromEvent(stopButton, 'click')
 const intervalThatStops$ = interval$.takeUntil(stop$)
 
-// .scan works like JavaScript reduce
-// takes function & initializer
-
-// .startWith will pass the initial data as scan's acc
-// will fire one time with 0 instead of waiting for start
-// might be useful e.g. for timers which we want to initialize with 0
 
 const data = { count: 0 }
+const inc = (acc) => ({ count: acc.count + 1 })
+const reset = (acc) => data
+
+// .scan receives:
+// 1) accumulator,
+// 2) current value - which we can set to a function i.e. by using .mapTo
 
 start$
   .switchMapTo(intervalThatStops$)
+  .mapTo(inc)
   .startWith(data)
-  .scan((acc) => {
-    return { count: acc.count + 1 }
-  })
+  .scan((acc, curr) => curr(acc))
   .subscribe(x => console.log(x))
