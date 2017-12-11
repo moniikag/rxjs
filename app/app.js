@@ -42,3 +42,10 @@ starters$
   .startWith(data)
   .scan((acc, curr) => curr(acc))
   .subscribe(x => console.log(x))
+
+const input = document.querySelector('#input')
+const input$ = Observable.fromEvent(input, 'input')
+  .map(event => event.target.value)
+
+input$
+  .subscribe((x) => console.log(x))
