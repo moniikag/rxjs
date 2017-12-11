@@ -37,15 +37,22 @@ const intervalActions = (time) => Observable.merge(
   reset$.mapTo(reset),
 )
 
-starters$
+const timer$ = starters$
   .switchMap(intervalActions)
   .startWith(data)
   .scan((acc, curr) => curr(acc))
-  .subscribe(x => console.log(x))
 
 const input = document.querySelector('#input')
 const input$ = Observable.fromEvent(input, 'input')
   .map(event => event.target.value)
 
-input$
+// Observable.combineLatest(timer$, input$)
+//   .map((array) => ({ count: array[0].count, text: array[1] }))
+//   .subscribe((x) => console.log(x))
+
+Observable.combineLatest(
+  timer$,
+  input$,
+  (timer, input) => ({ count: timer.count, text: input })
+)
   .subscribe((x) => console.log(x))
