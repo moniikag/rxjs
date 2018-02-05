@@ -51,10 +51,13 @@ const input$ = Observable.fromEvent(input, 'input')
 //   .subscribe((x) => console.log(x))
 
 Observable.combineLatest(
-  timer$,
+  timer$.do(x => console.log(x)),
   input$,
   (timer, input) => ({ count: timer.count, text: input })
 )
+  // Do allows you to do side effects
+  // - something that's gonna happen outside of our stream.
+  .do(x => console.log(x))
   .takeWhile((data) => data.count <= 3)
   .filter(data => data.count === parseInt(data.text))
   // Reduce is accumulating stream. It's waiting till completion.
