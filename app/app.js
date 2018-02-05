@@ -57,6 +57,10 @@ Observable.combineLatest(
 )
   .takeWhile((data) => data.count <= 3)
   .filter(data => data.count === parseInt(data.text))
+  // Reduce is accumulating stream. It's waiting till completion.
+  // So is now subscribe.
+  // => It'll only console log x once, with final value of reduce.
+  .reduce((acc, curr) => acc + 1, 0)
   .subscribe(
     x => console.log(x),
     err => console.log(err),
