@@ -56,11 +56,11 @@ const input$ = Observable.fromEvent(input, 'input')
 
 timer$
   .do(x => console.log(x))
-  .combineLatest(
+  .takeWhile((data) => data.count <= 3)
+  .withLatestFrom( //now timer is going to take the latest value from input$ and not gonna wait for it to complete
     input$,
     (timer, input) => ({ count: timer.count, text: input })
   )
-  .takeWhile((data) => data.count <= 3)
   .filter(data => data.count === parseInt(data.text))
   // Reduce is accumulating stream. It's waiting till completion.
   // So is now subscribe.
