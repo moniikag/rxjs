@@ -69,7 +69,7 @@ timer$
   .repeat() // you cannot restart a stream, but you can repeat
             // => now the stream is never completing. it gets to subscribe block, gives us x and resubscribes to our initial stream
   .subscribe(
-    x => console.log(x),
+    x => document.querySelector('#score').innerHTML = `${x}`,
     err => console.log(err),
     () => console.log('complete')
   )
