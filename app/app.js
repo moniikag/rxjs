@@ -66,6 +66,8 @@ timer$
   // So is now subscribe.
   // => It'll only console log x once, with final value of reduce.
   .reduce((acc, curr) => acc + 1, 0)
+  .repeat() // you cannot restart a stream, but you can repeat
+            // => now the stream is never completing. it gets to subscribe block, gives us x and resubscribes to our initial stream
   .subscribe(
     x => console.log(x),
     err => console.log(err),
